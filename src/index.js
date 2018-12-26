@@ -1,7 +1,5 @@
 // @flow
 
-import { DynamoRecord } from './dynamoRecord'
+import { DynamoRecord } from "./dynamoRecord";
 
-export {
-  DynamoRecord
-};
+export default DynamoRecord;
