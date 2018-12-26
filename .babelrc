@@ -1,0 +1,17 @@
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "include": ["transform-spread", "es6.*"],
+        "useBuiltIns": "usage",
+        "forceAllTransforms": true,
+        "targets": {
+          "esmodules": true,
+          "node": true
+        }
+      }
+    ],
+    "@babel/preset-flow"
+  ]
+}

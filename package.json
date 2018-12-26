@@ -1,0 +1,29 @@
+{
+  "name": "dynamo-record",
+  "version": "1.0.0",
+  "description": "DynamoDB Client",
+  "main": "lib/index.js",
+  "scripts": {
+    "start": "node_modules/.bin/babel src --out-dir lib --watch",
+    "prepack": "npm run prepack:babel && npm run prepack:flow",
+    "prepack:babel": "node_modules/.bin/babel src --out-dir lib",
+    "prepack:flow": "flow-copy-source src lib"
+  },
+  "keywords": [
+    "dynamo",
+    "dynamodb"
+  ],
+  "author": "Micaël Dekleyn",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.5",
+    "@babel/preset-env": "^7.1.5",
+    "@babel/preset-flow": "^7.0.0",
+    "flow-copy-source": "^2.0.2"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.0.0",
+    "aws-sdk": "^2.382.0"
+  }
+}
