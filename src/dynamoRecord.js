@@ -1,13 +1,8 @@
 // @flow
 
 import { DynamoDB } from "aws-sdk";
-import { forEach, upperFirst } from "lodash";
-import type {
-  GetParams,
-  DynamoDBGetParams,
-  AllParams,
-  DynamoDBQueryParams
-} from "./types";
+import { forEach, upperFirst, join } from "lodash";
+import type { DynamoDBGetParams, DynamoDBQueryParams } from "./types";
 
 export class DynamoRecord {
   tableName: string;
@@ -23,20 +18,20 @@ export class DynamoRecord {
   }
 
   /**
-   *  get() retrieve one item based on his primary key.
-   * @param {*} clientParams
-   * @param {*} onlyItem
+   * find() return one item based on his primary key.
+   * @param {*} primaryKey, an object with HASH and RANGE key.
+   * @param {*} config, an object with params for the  request.
    */
-  get(clientParams: GetParams, onlyItem?: boolean = true): Promise<any> {
+  find(primaryKey: Object, config?: Object): Promise<any> {
     return new Promise((resolve, reject) => {
       const params: DynamoDBGetParams = {
         TableName: this.tableName,
-        Key: clientParams.key,
+        Key: primaryKey,
         ConsistentRead: true,
         ReturnConsumedCapacity: "TOTAL"
       };
 
-      forEach(clientParams, (value, key) => {
+      forEach(config, (value, key) => {
         params[upperFirst(key)] = value;
       });
 
@@ -44,33 +39,50 @@ export class DynamoRecord {
         if (error) {
           reject(error);
         } else {
-          resolve(onlyItem ? data.Item : data);
+          resolve(data);
         }
       });
     });
   }
 
-  query(clientParams: AllParams, onlyItems?: boolean = true): Promise<any> {
+  /**
+   * where() return items based on primary key.
+   * @param {*} primaryKey, an object with HASH and RANGE key.
+   * @param {*} config, an object with params for the  request.
+   */
+  where(primaryKey: Object, config?: Object): Promise<any> {
     return new Promise((resolve, reject) => {
       const params: DynamoDBQueryParams = {
-        TableName: this.tableName
-        // ConsistentRead: true,
-        // ConditionalOperator: "AND",
-        // ReturnConsumedCapacity: "TOTAL",
-        // ScanIndexForward: true,
-        // Select: "ALL_ATTRIBUTES"
+        TableName: this.tableName,
+        ExpressionAttributeValues: {},
+        ReturnConsumedCapacity: "TOTAL",
+        ScanIndexForward: true,
+        Select: "ALL_ATTRIBUTES"
       };
+      const primaryKeyArray: string[] = [];
 
-      forEach(clientParams, (value, key) => {
-        params[upperFirst(key)] = value;
+      // Create an array with each primary key part
+      // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
+      forEach(primaryKey, (value, key) => {
+        primaryKeyArray.push(`${key} = :${key}`);
+        params.ExpressionAttributeValues[`:${key}`] = value;
       });
 
+      // Join with 'AND' each primary key part
+      params.KeyConditionExpression = join(primaryKeyArray, " AND ");
+
+      if (config) {
+        forEach(config, (value, key) => {
+          params[upperFirst(key)] = value;
+        });
+      }
+      console.log(this.dynamoClient);
       // Directly access items from a table by primary key or a secondary index.
       this.dynamoClient.query(params, (error: any, data: any) => {
         if (error) {
           reject(error);
         } else {
-          resolve(onlyItems ? data.Items : data);
+          resolve(data);
         }
       });
     });

@@ -2,4 +2,4 @@
 
 import { DynamoRecord } from "./dynamoRecord";
 
-export default DynamoRecord;
+export { DynamoRecord };
