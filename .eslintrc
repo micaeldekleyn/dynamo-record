@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "airbnb-base/legacy",
+    "plugin:flowtype/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "rules": {
+    "linebreak-style": 0,
+    "no-console": 0,
+    "import/prefer-default-export": 0
+  },
+  "parser": "babel-eslint",
+  "plugins": ["flowtype"]
+}
