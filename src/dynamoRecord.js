@@ -2,7 +2,7 @@
 
 import { DynamoDB } from "aws-sdk";
 import { forEach, upperFirst, join } from "lodash";
-import type { DynamoDBGetParams, DynamoDBQueryParams } from "./types";
+import { type DynamoDBGetParams, type DynamoDBQueryParams } from "./types";
 
 export class DynamoRecord {
   tableName: string;
@@ -31,9 +31,11 @@ export class DynamoRecord {
         ReturnConsumedCapacity: "TOTAL"
       };
 
-      forEach(config, (value, key) => {
-        params[upperFirst(key)] = value;
-      });
+      if (config) {
+        forEach(config, (value, key) => {
+          params[upperFirst(key)] = value;
+        });
+      }
 
       this.dynamoClient.get(params, (error, data) => {
         if (error) {
@@ -65,7 +67,7 @@ export class DynamoRecord {
       // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
       forEach(primaryKey, (value, key) => {
         primaryKeyArray.push(`${key} = :${key}`);
-        params.ExpressionAttributeValues[`:${key}`] = value;
+        params.ExpressionAttributeValues[":" + key] = value;
       });
 
       // Join with 'AND' each primary key part
@@ -76,7 +78,7 @@ export class DynamoRecord {
           params[upperFirst(key)] = value;
         });
       }
-      console.log(this.dynamoClient);
+
       // Directly access items from a table by primary key or a secondary index.
       this.dynamoClient.query(params, (error: any, data: any) => {
         if (error) {
