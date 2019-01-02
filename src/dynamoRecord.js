@@ -20,7 +20,7 @@ export class DynamoRecord {
   /**
    * find() return one item based on his primary key.
    * @param {*} primaryKey, an object with HASH and RANGE key.
-   * @param {*} config, an object with params for the  request.
+   * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#get-property)
    */
   find(primaryKey: Object, config?: Object): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -50,7 +50,7 @@ export class DynamoRecord {
   /**
    * where() return items based on primary key.
    * @param {*} primaryKey, an object with HASH and RANGE key.
-   * @param {*} config, an object with params for the  request.
+   * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property)
    */
   where(primaryKey: Object, config?: Object): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -81,6 +81,34 @@ export class DynamoRecord {
 
       // Directly access items from a table by primary key or a secondary index.
       this.dynamoClient.query(params, (error: any, data: any) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(data);
+        }
+      });
+    });
+  }
+
+  /**
+   * create() add an item into table
+   * @param {*} createData, data to store into table
+   * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property)
+   */
+  create(createData: Object, config?: Object): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const params: any = {
+        TableName: this.tableName,
+        Item: createData
+      };
+
+      if (config) {
+        forEach(config, (value, key) => {
+          params[upperFirst(key)] = value;
+        });
+      }
+
+      this.dynamoClient.put(params, (error: any, data: any) => {
         if (error) {
           reject(error);
         } else {
