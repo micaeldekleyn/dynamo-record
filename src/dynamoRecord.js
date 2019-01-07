@@ -117,4 +117,56 @@ export class DynamoRecord {
       });
     });
   }
+
+  /**
+   * update() an item into table based on his primary key.
+   * @param {*} primaryKey
+   * @param {*} updateData
+   * @param {*} config
+   */
+  update(
+    primaryKey: Object,
+    updateData: Object,
+    config?: Object
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const params: any = {
+        TableName: this.tableName,
+        Key: primaryKey,
+        ExpressionAttributeNames: {},
+        ExpressionAttributeValues: {},
+        ReturnValues: "ALL_NEW"
+      };
+
+      if (updateData) {
+        const updateExpression: string[] = [];
+
+        // Create an array with each attributes (#key = :key)
+        // Assign #key / key (data interpolation syntax from Dynamo) to ExpressionAttributeNames
+        // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
+        forEach(updateData, (value, key) => {
+          updateExpression.push(`#${key} = :${key}`);
+          params.ExpressionAttributeNames["#" + key] = key;
+          params.ExpressionAttributeValues[":" + key] = value;
+        });
+
+        // Join with ',' each attributes
+        params.UpdateExpression = `set ${join(updateExpression, ", ")}`;
+      }
+
+      if (config) {
+        forEach(config, (value, key) => {
+          params[upperFirst(key)] = value;
+        });
+      }
+
+      this.dynamoClient.update(params, (error: any, data: any) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(data);
+        }
+      });
+    });
+  }
 }
