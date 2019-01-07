@@ -118,6 +118,12 @@ export class DynamoRecord {
     });
   }
 
+  /**
+   * update() an item into table based on his primary key.
+   * @param {*} primaryKey
+   * @param {*} updateData
+   * @param {*} config
+   */
   update(
     primaryKey: Object,
     updateData: Object,
@@ -158,7 +164,6 @@ export class DynamoRecord {
         if (error) {
           reject(error);
         } else {
-          console.log(data);
           resolve(data);
         }
       });
