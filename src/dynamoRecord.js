@@ -127,6 +127,8 @@ export class DynamoRecord {
       const params: any = {
         TableName: this.tableName,
         Key: primaryKey,
+        ExpressionAttributeNames: {},
+        ExpressionAttributeValues: {},
         ReturnValues: "ALL_NEW"
       };
 
@@ -136,7 +138,7 @@ export class DynamoRecord {
         // Create an array with each attributes (#key = :key)
         // Assign #key / key (data interpolation syntax from Dynamo) to ExpressionAttributeNames
         // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
-        forEach(primaryKey, (value, key) => {
+        forEach(updateData, (value, key) => {
           updateExpression.push(`#${key} = :${key}`);
           params.ExpressionAttributeNames["#" + key] = key;
           params.ExpressionAttributeValues[":" + key] = value;
@@ -156,6 +158,7 @@ export class DynamoRecord {
         if (error) {
           reject(error);
         } else {
+          console.log(data);
           resolve(data);
         }
       });
