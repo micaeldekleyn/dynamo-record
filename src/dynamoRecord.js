@@ -4,6 +4,16 @@ import { DynamoDB } from "aws-sdk";
 import { forEach, upperFirst, join } from "lodash";
 import { type DynamoDBGetParams, type DynamoDBQueryParams } from "./types";
 
+const assignConfig = (params: Object, config: Object): Object => {
+  const paramsToReturn = { ...params };
+
+  forEach(config, (value, key) => {
+    paramsToReturn[upperFirst(key)] = value;
+  });
+
+  return paramsToReturn;
+};
+
 export class DynamoRecord {
   tableName: string;
 
@@ -24,7 +34,7 @@ export class DynamoRecord {
    */
   find(primaryKey: Object, config?: Object): Promise<any> {
     return new Promise((resolve, reject) => {
-      const params: DynamoDBGetParams = {
+      let params: DynamoDBGetParams = {
         TableName: this.tableName,
         Key: primaryKey,
         ConsistentRead: true,
@@ -32,9 +42,7 @@ export class DynamoRecord {
       };
 
       if (config) {
-        forEach(config, (value, key) => {
-          params[upperFirst(key)] = value;
-        });
+        params = assignConfig(params, config);
       }
 
       this.dynamoClient.get(params, (error, data) => {
@@ -54,7 +62,7 @@ export class DynamoRecord {
    */
   where(primaryKey: Object, config?: Object): Promise<any> {
     return new Promise((resolve, reject) => {
-      const params: DynamoDBQueryParams = {
+      let params: DynamoDBQueryParams = {
         TableName: this.tableName,
         ExpressionAttributeValues: {},
         ReturnConsumedCapacity: "TOTAL",
@@ -74,9 +82,7 @@ export class DynamoRecord {
       params.KeyConditionExpression = join(primaryKeyArray, " AND ");
 
       if (config) {
-        forEach(config, (value, key) => {
-          params[upperFirst(key)] = value;
-        });
+        params = assignConfig(params, config);
       }
 
       // Directly access items from a table by primary key or a secondary index.
@@ -97,15 +103,13 @@ export class DynamoRecord {
    */
   create(createData: Object, config?: Object): Promise<any> {
     return new Promise((resolve, reject) => {
-      const params: any = {
+      let params: any = {
         TableName: this.tableName,
         Item: createData
       };
 
       if (config) {
-        forEach(config, (value, key) => {
-          params[upperFirst(key)] = value;
-        });
+        params = assignConfig(params, config);
       }
 
       this.dynamoClient.put(params, (error: any, data: any) => {
@@ -130,7 +134,7 @@ export class DynamoRecord {
     config?: Object
   ): Promise<any> {
     return new Promise((resolve, reject) => {
-      const params: any = {
+      let params: any = {
         TableName: this.tableName,
         Key: primaryKey,
         ExpressionAttributeNames: {},
@@ -155,12 +159,31 @@ export class DynamoRecord {
       }
 
       if (config) {
-        forEach(config, (value, key) => {
-          params[upperFirst(key)] = value;
-        });
+        params = assignConfig(params, config);
       }
 
       this.dynamoClient.update(params, (error: any, data: any) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(data);
+        }
+      });
+    });
+  }
+
+  destroy(primaryKey: Object, config?: Object): Promise<any> {
+    return new Promise((resolve, reject) => {
+      let params: any = {
+        TableName: this.tableName,
+        Key: primaryKey
+      };
+
+      if (config) {
+        params = assignConfig(params, config);
+      }
+
+      this.dynamoClient.delete(params, (error: any, data: any) => {
         if (error) {
           reject(error);
         } else {
