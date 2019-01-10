@@ -1,2 +1,6 @@
 src
 .vscode
+.babelrc
+.flowconfig
+.gitignore
+.prettierrc
