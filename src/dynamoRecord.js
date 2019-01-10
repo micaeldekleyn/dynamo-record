@@ -101,7 +101,7 @@ export class DynamoRecord {
    * @param {*} createData, data to store into table
    * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property)
    */
-  create(createData: Object, config?: Object): Promise<any> {
+  create(createData: any, config?: Object): Promise<any> {
     return new Promise((resolve, reject) => {
       let params: any = {
         TableName: this.tableName,
@@ -128,11 +128,7 @@ export class DynamoRecord {
    * @param {*} updateData
    * @param {*} config
    */
-  update(
-    primaryKey: Object,
-    updateData: Object,
-    config?: Object
-  ): Promise<any> {
+  update(primaryKey: Object, updateData: any, config?: Object): Promise<any> {
     return new Promise((resolve, reject) => {
       let params: any = {
         TableName: this.tableName,
