@@ -38,7 +38,7 @@ type DynamoDBQueryParams = {
 };
 
 declare module "dynamo-record" {
-  export default class DynamoRecord {
+  export class DynamoRecord {
     constructor(tableName: string, tableRegion: string);
 
     /**
