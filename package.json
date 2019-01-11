@@ -1,6 +1,6 @@
 {
   "name": "dynamo-record",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "dynamo-record provides a DynamoDB client that adds Promise support and functionality beyond what is provided by the aws-sdk.",
   "main": "lib/index.js",
   "scripts": {
