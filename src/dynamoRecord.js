@@ -60,10 +60,15 @@ export class DynamoRecord {
    * @param {*} primaryKey, an object with HASH and RANGE key.
    * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property)
    */
-  where(primaryKey: Object, config?: Object): Promise<any> {
+  where(
+    primaryKey: Object,
+    filterExpression?: Object,
+    config?: Object
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       let params: DynamoDBQueryParams = {
         TableName: this.tableName,
+        ExpressionAttributeNames: {},
         ExpressionAttributeValues: {},
         ReturnConsumedCapacity: "TOTAL",
         ScanIndexForward: true,
@@ -74,12 +79,26 @@ export class DynamoRecord {
       // Create an array with each primary key part
       // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
       forEach(primaryKey, (value, key) => {
-        primaryKeyArray.push(`${key} = :${key}`);
+        primaryKeyArray.push(`#${key} = :${key}`);
+        params.ExpressionAttributeNames["#" + key] = key;
         params.ExpressionAttributeValues[":" + key] = value;
       });
 
       // Join with 'AND' each primary key part
       params.KeyConditionExpression = join(primaryKeyArray, " AND ");
+
+      if (
+        filterExpression &&
+        filterExpression.condition &&
+        filterExpression.keys
+      ) {
+        params.FilterExpression = filterExpression.condition;
+
+        forEach(filterExpression.keys, (value, key) => {
+          params.ExpressionAttributeNames["#" + key] = key;
+          params.ExpressionAttributeValues[":" + key] = value;
+        });
+      }
 
       if (config) {
         params = assignConfig(params, config);
