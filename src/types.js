@@ -24,7 +24,7 @@ export type DynamoDBQueryParams = {
   ConditionalOperator?: ConditionalOperator,
   ConsistentRead?: boolean,
   ExclusiveStartKey?: { [string]: any },
-  ExpressionAttributeNames?: { [string]: string },
+  ExpressionAttributeNames: { [string]: string },
   ExpressionAttributeValues: { [string]: any },
   FilterExpression?: string,
   IndexName?: string,
