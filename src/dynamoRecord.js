@@ -97,7 +97,7 @@ export class DynamoRecord {
         forEach(filterExpression.keys, (value, key) => {
           params.ExpressionAttributeNames["#" + key] = key;
           // Between attributes
-          if (isArray(value) && value.length > 2) {
+          if (isArray(value) && value.length === 2) {
             value.forEach((v, k) => {
               if (k === 0) {
                 params.ExpressionAttributeValues[":" + key + "Start"] = v;
