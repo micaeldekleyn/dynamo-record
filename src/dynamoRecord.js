@@ -1,7 +1,7 @@
 // @flow
 
 import { DynamoDB } from "aws-sdk";
-import { forEach, upperFirst, join } from "lodash";
+import { forEach, upperFirst, join, isArray } from "lodash";
 import { type DynamoDBGetParams, type DynamoDBQueryParams } from "./types";
 
 const assignConfig = (params: Object, config: Object): Object => {
@@ -96,7 +96,18 @@ export class DynamoRecord {
 
         forEach(filterExpression.keys, (value, key) => {
           params.ExpressionAttributeNames["#" + key] = key;
-          params.ExpressionAttributeValues[":" + key] = value;
+          // Between attributes
+          if (isArray(value) && value.length > 2) {
+            value.forEach((v, k) => {
+              if (k === 0) {
+                params.ExpressionAttributeValues[":" + key + "Start"] = v;
+              } else if (k === 1) {
+                params.ExpressionAttributeValues[":" + key + "End"] = v;
+              }
+            });
+          } else {
+            params.ExpressionAttributeValues[":" + key] = value;
+          }
         });
       }
 
