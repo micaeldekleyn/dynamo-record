@@ -53,7 +53,11 @@ declare module "dynamo-record" {
      * @param {*} primaryKey, an object with HASH and RANGE key.
      * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property)
      */
-    where(primaryKey: Object, config?: Object): Promise<any>;
+    where(
+      primaryKey: Object,
+      filterExpression?: Object,
+      config?: Object
+    ): Promise<any>;
 
     /**
      * create() add an item into table
