@@ -71,17 +71,28 @@ export class DynamoRecord {
         ExpressionAttributeNames: {},
         ExpressionAttributeValues: {},
         ReturnConsumedCapacity: "TOTAL",
-        ScanIndexForward: true,
-        Select: "ALL_ATTRIBUTES"
+        ScanIndexForward: true
       };
       const primaryKeyArray: string[] = [];
 
       // Create an array with each primary key part
       // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
       forEach(primaryKey, (value, key) => {
-        primaryKeyArray.push(`#${key} = :${key}`);
         params.ExpressionAttributeNames["#" + key] = key;
-        params.ExpressionAttributeValues[":" + key] = value;
+        // Between attributes
+        if (isArray(value) && value.length === 2) {
+          primaryKeyArray.push(`#${key} BETWEEN :${key}Start AND :${key}End`);
+          value.forEach((v, k) => {
+            if (k === 0) {
+              params.ExpressionAttributeValues[":" + key + "Start"] = v;
+            } else if (k === 1) {
+              params.ExpressionAttributeValues[":" + key + "End"] = v;
+            }
+          });
+        } else {
+          primaryKeyArray.push(`#${key} = :${key}`);
+          params.ExpressionAttributeValues[":" + key] = value;
+        }
       });
 
       // Join with 'AND' each primary key part
