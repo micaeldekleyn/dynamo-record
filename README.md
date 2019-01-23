@@ -15,7 +15,7 @@ OR
 $ yarn add dynamo-record
 ```
 
-### Import & initialisation
+### Import & initialization
 
 ``` javascript
 // assumes AWS.config is set up already
