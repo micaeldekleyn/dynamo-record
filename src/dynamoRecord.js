@@ -61,7 +61,7 @@ export class DynamoRecord {
    * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property)
    */
   where(
-    primaryKey: Object,
+    primaryKey?: Object,
     filterExpression?: Object,
     config?: Object
   ): Promise<any> {
@@ -70,33 +70,35 @@ export class DynamoRecord {
         TableName: this.tableName,
         ExpressionAttributeNames: {},
         ExpressionAttributeValues: {},
-        ReturnConsumedCapacity: "TOTAL",
-        ScanIndexForward: true
+        ReturnConsumedCapacity: "TOTAL"
       };
-      const primaryKeyArray: string[] = [];
 
-      // Create an array with each primary key part
-      // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
-      forEach(primaryKey, (value, key) => {
-        params.ExpressionAttributeNames["#" + key] = key;
-        // Between attributes
-        if (isArray(value) && value.length === 2) {
-          primaryKeyArray.push(`#${key} BETWEEN :${key}Start AND :${key}End`);
-          value.forEach((v, k) => {
-            if (k === 0) {
-              params.ExpressionAttributeValues[":" + key + "Start"] = v;
-            } else if (k === 1) {
-              params.ExpressionAttributeValues[":" + key + "End"] = v;
-            }
-          });
-        } else {
-          primaryKeyArray.push(`#${key} = :${key}`);
-          params.ExpressionAttributeValues[":" + key] = value;
-        }
-      });
+      if (primaryKey) {
+        const primaryKeyArray: string[] = [];
 
-      // Join with 'AND' each primary key part
-      params.KeyConditionExpression = join(primaryKeyArray, " AND ");
+        // Create an array with each primary key part
+        // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
+        forEach(primaryKey, (value, key) => {
+          params.ExpressionAttributeNames["#" + key] = key;
+          // Between attributes
+          if (isArray(value) && value.length === 2) {
+            primaryKeyArray.push(`#${key} BETWEEN :${key}Start AND :${key}End`);
+            value.forEach((v, k) => {
+              if (k === 0) {
+                params.ExpressionAttributeValues[":" + key + "Start"] = v;
+              } else if (k === 1) {
+                params.ExpressionAttributeValues[":" + key + "End"] = v;
+              }
+            });
+          } else {
+            primaryKeyArray.push(`#${key} = :${key}`);
+            params.ExpressionAttributeValues[":" + key] = value;
+          }
+        });
+
+        // Join with 'AND' each primary key part
+        params.KeyConditionExpression = join(primaryKeyArray, " AND ");
+      }
 
       if (
         filterExpression &&
@@ -126,14 +128,25 @@ export class DynamoRecord {
         params = assignConfig(params, config);
       }
 
-      // Directly access items from a table by primary key or a secondary index.
-      this.dynamoClient.query(params, (error: any, data: any) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(data);
-        }
-      });
+      if (primaryKey) {
+        // Directly access items from a table by primary key or a secondary index.
+        this.dynamoClient.query(params, (error: any, data: any) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(data);
+          }
+        });
+      } else {
+        // Directly access items from a table without primary key or a secondary index.
+        this.dynamoClient.scan(params, (error: any, data: any) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(data);
+          }
+        });
+      }
     });
   }
 
