@@ -151,6 +151,31 @@ export class DynamoRecord {
   }
 
   /**
+   * getAll() return all items from table.
+   * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#scan-property)
+   */
+  getAll(config?: Object): Promise<any> {
+    let params = {
+      TableName: this.tableName,
+      ReturnConsumedCapacity: "TOTAL"
+    };
+
+    if (config) {
+      params = assignConfig(params, config);
+    }
+
+    return new Promise((resolve, reject) => {
+      this.dynamoClient.scan(params, (error: any, data: any) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(data);
+        }
+      });
+    });
+  }
+
+  /**
    * create() add an item into table
    * @param {*} createData, data to store into table
    * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property)
