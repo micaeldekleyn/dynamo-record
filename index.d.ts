@@ -8,11 +8,11 @@ type Select =
 
 type DynamoDBGetParams = {
   TableName: string;
-  Key: {  [key: string]: any };
+  Key: { [key: string]: any };
   ConsistentRead: boolean;
   ReturnConsumedCapacity: ReturnConsumedCapacity;
   AttributesToGet?: string[];
-  ExpressionAttributeNames?: {  [key: string]: string };
+  ExpressionAttributeNames?: { [key: string]: string };
   ProjectionExpression?: string;
 };
 
@@ -21,13 +21,13 @@ type DynamoDBQueryParams = {
   AttributesToGet?: string[];
   ConditionalOperator?: ConditionalOperator;
   ConsistentRead?: boolean;
-  ExclusiveStartKey?: {  [key: string]: any };
-  ExpressionAttributeNames?: {  [key: string]: string };
-  ExpressionAttributeValues: {  [key: string]: any };
+  ExclusiveStartKey?: { [key: string]: any };
+  ExpressionAttributeNames?: { [key: string]: string };
+  ExpressionAttributeValues: { [key: string]: any };
   FilterExpression?: string;
   IndexName?: string;
   KeyConditionExpression?: string;
-  KeyConditions?: {  [key: string]: any };
+  KeyConditions?: { [key: string]: any };
   Limit?: number;
   ProjectionExpression?: string;
   ReturnConsumedCapacity?: ReturnConsumedCapacity;
@@ -54,10 +54,16 @@ declare module "dynamo-record" {
      * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property)
      */
     where(
-      primaryKey: Object,
+      primaryKey?: Object,
       filterExpression?: Object,
       config?: Object
     ): Promise<any>;
+
+    /**
+     * getAll() return all items from table.
+     * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#scan-property)
+     */
+    getAll(config?: Object): Promise<any>;
 
     /**
      * create() add an item into table
