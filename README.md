@@ -56,18 +56,33 @@ Extend: [get()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB
 
 ## where
 
-**Return all items that match primaryKey and/or condition**
+**Return all items that match primary key and/or condition**
 
 ``` javascript
 repo.where(primaryKey, filterExpression, config)
 ```
 
 Extend: [query()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property)
+[scan()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property)
 
 ### Parameters
 
--   `primaryKey` **object** with hash and range key. Provided keys must match dynamoDB schema.
+-   `primaryKey` **optional** - **object** with hash and range key. Provided keys must match dynamoDB schema.
 -   `filterExpression` **optional** - **object** with required condition and keys property.
+-   `config` **optional** - **object** with DocumentClient params.
+
+## getAll
+
+**Return all items**
+
+``` javascript
+repo.getAll(config)
+```
+
+Extend: [scan()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#scan-property)
+
+### Parameters
+
 -   `config` **optional** - **object** with DocumentClient params.
 
 ## create
