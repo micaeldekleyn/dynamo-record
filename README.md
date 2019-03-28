@@ -1,6 +1,6 @@
 # Dynamo Record
 
-This package aims to provide an _“humanize"_ and more readable support of DynamoDB DocumentClient.
+This package aims to provide a *“humanized"* and more readable support of DynamoDB DocumentClient.
 
 ## Getting started
 
