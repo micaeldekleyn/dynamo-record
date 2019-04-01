@@ -1,7 +1,7 @@
 // @flow
 
 import { DynamoDB } from "aws-sdk";
-import { forEach, upperFirst, join, isArray } from "lodash";
+import { forEach, upperFirst, join, isArray, size } from "lodash";
 import { type DynamoDBGetParams, type DynamoDBQueryParams } from "./types";
 
 const assignConfig = (params: Object, config: Object): Object => {
@@ -122,6 +122,14 @@ export class DynamoRecord {
             params.ExpressionAttributeValues[":" + key] = value;
           }
         });
+      }
+
+      if (size(params.ExpressionAttributeNames) === 0) {
+        delete params.ExpressionAttributeNames;
+      }
+
+      if (size(params.ExpressionAttributeValues) === 0) {
+        delete params.ExpressionAttributeValues;
       }
 
       if (config) {
