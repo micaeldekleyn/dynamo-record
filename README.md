@@ -1,6 +1,6 @@
 # Dynamo Record
 
-This package aims to provide a *“humanized"* and more readable support of DynamoDB DocumentClient.
+This package aims to provide a _“humanized"_ and more readable support of DynamoDB DocumentClient.
 
 ## Getting started
 
@@ -96,6 +96,21 @@ Extend: [put()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB
 ### Parameters
 
 - `createData` **object** with data to add into table.
+- `config` **optional** - **object** with DocumentClient params.
+
+## batchCreate
+
+**Add an array of items**
+
+```javascript
+repo.batchCreate(createData, config);
+```
+
+Extend: [batchWrite()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#batchWriteItem-property)
+
+### Parameters
+
+- `createData` **array** of items to add into table.
 - `config` **optional** - **object** with DocumentClient params.
 
 ## update
