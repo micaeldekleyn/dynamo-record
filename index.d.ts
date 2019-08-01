@@ -73,6 +73,13 @@ declare module "dynamo-record" {
     create(createData: any, config?: Object): Promise<any>;
 
     /**
+     * batchCreate() add items into table
+     * @param {*} createData array of data to store into table max of 25 items
+     * @param {*} config an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#batchWriteItem-property)
+     */
+    batchCreate(createData: Object[], config?: Object): Promise<any>;
+
+    /**
      * update() an item into table based on his primary key.
      * @param {*} primaryKey
      * @param {*} updateData
