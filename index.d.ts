@@ -87,6 +87,18 @@ declare module "dynamo-record" {
      */
     update(primaryKey: Object, updateData: any, config?: Object): Promise<any>;
 
+    /**
+     * deepUpdate() an item into table based on his primary key.
+     * @param {*} primaryKey
+     * @param {*} updateData
+     * @param {*} config
+     */
+    deepUpdate(
+      primaryKey: Object,
+      updateData: any,
+      config?: Object
+    ): Promise<any>;
+
     destroy(primaryKey: Object, config?: Object): Promise<any>;
   }
 }
