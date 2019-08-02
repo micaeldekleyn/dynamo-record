@@ -302,8 +302,6 @@ export class DynamoRecord {
         params = assignConfig(params, config);
       }
 
-      console.log("dynamorecord", JSON.stringify({ params }));
-
       this.dynamoClient.update(params, (error: any, data: any) => {
         if (error) {
           reject(error);
