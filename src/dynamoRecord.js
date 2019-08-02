@@ -1,14 +1,15 @@
 // @flow
 
 import { DynamoDB } from "aws-sdk";
-import { forEach, upperFirst, join, isArray, size } from "lodash";
+import _ from "lodash";
+import { flatten } from "flat";
 import { type DynamoDBGetParams, type DynamoDBQueryParams } from "./types";
 
 const assignConfig = (params: Object, config: Object): Object => {
   const paramsToReturn = { ...params };
 
-  forEach(config, (value, key) => {
-    paramsToReturn[upperFirst(key)] = value;
+  _.forEach(config, (value, key) => {
+    paramsToReturn[_.upperFirst(key)] = value;
   });
 
   return paramsToReturn;
@@ -78,10 +79,10 @@ export class DynamoRecord {
 
         // Create an array with each primary key part
         // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
-        forEach(primaryKey, (value, key) => {
+        _.forEach(primaryKey, (value, key) => {
           params.ExpressionAttributeNames["#" + key] = key;
           // Between attributes
-          if (isArray(value) && value.length === 2) {
+          if (_.isArray(value) && value.length === 2) {
             primaryKeyArray.push(`#${key} BETWEEN :${key}Start AND :${key}End`);
             value.forEach((v, k) => {
               if (k === 0) {
@@ -97,7 +98,7 @@ export class DynamoRecord {
         });
 
         // Join with 'AND' each primary key part
-        params.KeyConditionExpression = join(primaryKeyArray, " AND ");
+        params.KeyConditionExpression = _.join(primaryKeyArray, " AND ");
       }
 
       if (
@@ -107,10 +108,10 @@ export class DynamoRecord {
       ) {
         params.FilterExpression = filterExpression.condition;
 
-        forEach(filterExpression.keys, (value, key) => {
+        _.forEach(filterExpression.keys, (value, key) => {
           params.ExpressionAttributeNames["#" + key] = key;
           // Between attributes
-          if (isArray(value) && value.length === 2) {
+          if (_.isArray(value) && value.length === 2) {
             value.forEach((v, k) => {
               if (k === 0) {
                 params.ExpressionAttributeValues[":" + key + "Start"] = v;
@@ -124,11 +125,11 @@ export class DynamoRecord {
         });
       }
 
-      if (size(params.ExpressionAttributeNames) === 0) {
+      if (_.size(params.ExpressionAttributeNames) === 0) {
         delete params.ExpressionAttributeNames;
       }
 
-      if (size(params.ExpressionAttributeValues) === 0) {
+      if (_.size(params.ExpressionAttributeValues) === 0) {
         delete params.ExpressionAttributeValues;
       }
 
@@ -255,19 +256,46 @@ export class DynamoRecord {
       };
 
       if (updateData) {
-        const updateExpression: string[] = [];
+        const updateExpression = [];
+        // Flatten the nested object to a 'key1.keyA': 'valueI' map but preserve array
+        const dataPath = flatten(updateData, { safe: true });
 
         // Create an array with each attributes (#key = :key)
         // Assign #key / key (data interpolation syntax from Dynamo) to ExpressionAttributeNames
         // Assign :key / value (data interpolation syntax from Dynamo) to ExpressionAttributeValues
-        forEach(updateData, (value, key) => {
-          updateExpression.push(`#${key} = :${key}`);
-          params.ExpressionAttributeNames["#" + key] = key;
-          params.ExpressionAttributeValues[":" + key] = value;
+        const keyCounter = {};
+        _.forEach(dataPath, (value, path) => {
+          const keys = path.split(".");
+
+          // Get the key of the value to update
+          let valueKey = keys[keys.length - 1];
+
+          // Check if the value was used for an other item in the update object
+          keyCounter[valueKey] = keyCounter[valueKey]
+            ? keyCounter[valueKey] + 1
+            : 1;
+          if (params.ExpressionAttributeValues[":" + valueKey] !== undefined) {
+            // Key already used so add key counter to the string
+            valueKey = `${valueKey}_${keyCounter[valueKey]}`;
+          }
+          params.ExpressionAttributeValues[":" + valueKey] = value;
+
+          // Construct the update expression for the value key with the path
+          let itemUpdateExpression = "";
+          keys.forEach((key, keyIndex) => {
+            params.ExpressionAttributeNames[`#${key}`] = key;
+            itemUpdateExpression += `#${key}`;
+            if (keyIndex !== keys.length - 1) {
+              itemUpdateExpression += ".";
+            }
+          });
+          itemUpdateExpression += ` = :${valueKey}`;
+
+          updateExpression.push(itemUpdateExpression);
         });
 
-        // Join with ',' each attributes
-        params.UpdateExpression = `set ${join(updateExpression, ", ")}`;
+        // Join with ',' each attributes path
+        params.UpdateExpression = `set ${_.join(updateExpression, ", ")}`;
       }
 
       if (config) {
