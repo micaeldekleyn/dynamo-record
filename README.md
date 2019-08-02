@@ -115,7 +115,11 @@ Extend: [batchWrite()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/D
 
 ## update
 
-**Update an item based on his primary key**
+**Deep update an item based on his primary key**
+
+The updated object must have a full existing tree of all nested object before the update. _DynamoDB_ can't update a property and create it's parent object on the same request.
+
+If user wants to update a whole object without knowing the nested content, he can pass a custom config through _updateExpression_, _expressionAttributeNames_ and _expressionAttributeValues_.
 
 ```javascript
 repo.update(primaryKey, updateData, config);
