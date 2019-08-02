@@ -129,6 +129,26 @@ Extend: [update()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Dynam
 - `updateData` **object** with item data to update.
 - `config` **optional** - **object** with DocumentClient params.
 
+## deepUpdate
+
+**Only update object endpoint values based on his primary key**
+
+The updated object must have a full existing tree of all nested object before the update. _DynamoDB_ can't update a property and create it's parent object on the same request.
+
+If user wants to update a whole object without knowing the nested content, he can pass a custom config through _updateExpression_, _expressionAttributeNames_ and _expressionAttributeValues_.
+
+```javascript
+repo.deepUpdate(primaryKey, updateData, config);
+```
+
+Extend: [update()](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#update-property)
+
+### Parameters
+
+- `primaryKey` **object** with hash and range key. Provided keys must match dynamoDB schema.
+- `updateData` **object** with item data to update.
+- `config` **optional** - **object** with DocumentClient params.
+
 ## destroy
 
 **Remove an item**
