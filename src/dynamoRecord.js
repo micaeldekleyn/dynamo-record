@@ -268,7 +268,7 @@ export class DynamoRecord {
         });
 
         // Join with ',' each attributes
-        params.UpdateExpression = `set ${join(updateExpression, ", ")}`;
+        params.UpdateExpression = `set ${_.join(updateExpression, ", ")}`;
       }
 
       if (config) {
