@@ -1,6 +1,7 @@
 // @flow
 
 import { DynamoDB } from "aws-sdk";
+import { captureAWSClient } from "aws-xray-sdk";
 import _ from "lodash";
 import { flatten } from "flat";
 import { type DynamoDBGetParams, type DynamoDBQueryParams } from "./types";
@@ -20,12 +21,29 @@ export class DynamoRecord {
 
   dynamoClient: DynamoDB.DocumentClient;
 
-  constructor(tableName: string, tableRegion: string) {
+  constructor(
+    tableName: string,
+    tableRegion: string,
+    tracing: boolean = false
+  ) {
     this.tableName = tableName;
 
-    this.dynamoClient = new DynamoDB.DocumentClient({
-      tableRegion
-    });
+    if (tracing) {
+      // Workaround https://forums.aws.amazon.com/thread.jspa?messageID=821510#821510
+      const ddbClient = captureAWSClient(
+        new DynamoDB({
+          tableRegion
+        })
+      );
+      this.dynamoClient = new DynamoDB.DocumentClient({
+        service: ddbClient
+      });
+      this.dynamoClient.service = ddbClient;
+    } else {
+      this.dynamoClient = new DynamoDB.DocumentClient({
+        tableRegion
+      });
+    }
   }
 
   /**

@@ -39,7 +39,7 @@ type DynamoDBQueryParams = {
 
 declare module "dynamo-record" {
   export class DynamoRecord {
-    constructor(tableName: string, tableRegion: string);
+    constructor(tableName: string, tableRegion: string, tracing: boolean);
 
     /**
      * find() return one item based on his primary key.
