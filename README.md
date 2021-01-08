@@ -22,11 +22,11 @@ $ yarn add dynamo-record
 // assumes AWS.config is set up already
 import { DynamoRecord } from "dynamo-record";
 
-const repo = new DynamoRecord(tableName, tableRegion, tracing);
+const repo = new DynamoRecord<DataType, WhereType>(tableName, config, tracing);
 ```
 
 - `tableName` **string** the table name
-- `tableRegion` **string** the table region
+- `config` **Dynamo Client Configuration** The AWS DynamoDB configuration object
 - `tracing` **optional** - **boolean** enable or disable AWS X-Ray tracing feature. Default is false.
 
 ## Key concept
