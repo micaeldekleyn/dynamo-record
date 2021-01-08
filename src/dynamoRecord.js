@@ -23,26 +23,20 @@ export class DynamoRecord {
 
   constructor(
     tableName: string,
-    tableRegion: string,
-    tracing: boolean = false
+    config?: DynamoDB.Types.ClientConfiguration,
+    tracing?: boolean = false
   ) {
     this.tableName = tableName;
 
     if (tracing) {
       // Workaround https://forums.aws.amazon.com/thread.jspa?messageID=821510#821510
-      const ddbClient = captureAWSClient(
-        new DynamoDB({
-          tableRegion
-        })
-      );
+      const ddbClient = captureAWSClient(new DynamoDB(config));
       this.dynamoClient = new DynamoDB.DocumentClient({
         service: ddbClient
       });
       this.dynamoClient.service = ddbClient;
     } else {
-      this.dynamoClient = new DynamoDB.DocumentClient({
-        tableRegion
-      });
+      this.dynamoClient = new DynamoDB.DocumentClient(config);
     }
   }
 
