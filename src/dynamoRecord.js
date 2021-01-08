@@ -4,7 +4,12 @@ import { DynamoDB } from "aws-sdk";
 import { captureAWSClient } from "aws-xray-sdk";
 import _ from "lodash";
 import { flatten } from "flat";
-import { type DynamoDBGetParams, type DynamoDBQueryParams } from "./types";
+import {
+  type DynamoDBGetParams,
+  type DynamoDBQueryParams,
+  type QueryResponse,
+  type WhereFilterExpression
+} from "./types";
 
 const assignConfig = (params: Object, config: Object): Object => {
   const paramsToReturn = { ...params };
@@ -15,8 +20,12 @@ const assignConfig = (params: Object, config: Object): Object => {
 
   return paramsToReturn;
 };
-
-export class DynamoRecord {
+/**
+ * @template T Data type without the primary key
+ * @template W Primary key type
+ * @template S Full data type composed by primary key and data types
+ */
+export class DynamoRecord<T, W, S = W & T> {
   tableName: string;
 
   dynamoClient: DynamoDB.DocumentClient;
@@ -45,9 +54,9 @@ export class DynamoRecord {
    * @param {*} primaryKey, an object with HASH and RANGE key.
    * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#get-property)
    */
-  find(primaryKey: Object, config?: Object): Promise<any> {
+  find(primaryKey: W, config?: Object): Promise<S> {
     return new Promise((resolve, reject) => {
-      let params: DynamoDBGetParams = {
+      let params: DynamoDBGetParams<W> = {
         TableName: this.tableName,
         Key: primaryKey,
         ConsistentRead: true,
@@ -62,7 +71,7 @@ export class DynamoRecord {
         if (error) {
           reject(error);
         } else {
-          resolve(data);
+          resolve(data.Item);
         }
       });
     });
@@ -74,10 +83,10 @@ export class DynamoRecord {
    * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#query-property)
    */
   where(
-    primaryKey?: Object,
-    filterExpression?: Object,
+    primaryKey?: $Shape<W>,
+    filterExpression?: WhereFilterExpression,
     config?: Object
-  ): Promise<any> {
+  ): Promise<QueryResponse<S>> {
     return new Promise((resolve, reject) => {
       let params: DynamoDBQueryParams = {
         TableName: this.tableName,
@@ -175,7 +184,7 @@ export class DynamoRecord {
    * getAll() return all items from table.
    * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#scan-property)
    */
-  getAll(config?: Object): Promise<any> {
+  getAll(config?: Object): Promise<QueryResponse<S>> {
     let params = {
       TableName: this.tableName,
       ReturnConsumedCapacity: "TOTAL"
@@ -186,7 +195,7 @@ export class DynamoRecord {
     }
 
     return new Promise((resolve, reject) => {
-      this.dynamoClient.scan(params, (error: any, data: any) => {
+      this.dynamoClient.scan(params, (error, data) => {
         if (error) {
           reject(error);
         } else {
@@ -201,7 +210,10 @@ export class DynamoRecord {
    * @param {*} createData, data to store into table
    * @param {*} config, an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html#put-property)
    */
-  create(createData: any, config?: Object): Promise<any> {
+  create(
+    createData: S,
+    config?: Object
+  ): Promise<DynamoDB.DocumentClient.PutItemOutput> {
     return new Promise((resolve, reject) => {
       let params: any = {
         TableName: this.tableName,
@@ -212,7 +224,7 @@ export class DynamoRecord {
         params = assignConfig(params, config);
       }
 
-      this.dynamoClient.put(params, (error: any, data: any) => {
+      this.dynamoClient.put(params, (error, data) => {
         if (error) {
           reject(error);
         } else {
@@ -227,7 +239,10 @@ export class DynamoRecord {
    * @param {*} createData array of data to store into table max of 25 items
    * @param {*} config an object with params for the request. (https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#batchWriteItem-property)
    */
-  batchCreate(createData: Object[], config?: Object): Promise<any> {
+  batchCreate(
+    createData: S[],
+    config?: Object
+  ): Promise<DynamoDB.DocumentClient.BatchWriteItemOutput> {
     return new Promise((resolve, reject) => {
       let params: Object = {
         RequestItems: {
@@ -241,7 +256,7 @@ export class DynamoRecord {
         params = assignConfig(params, config);
       }
 
-      this.dynamoClient.batchWrite(params, (error: any, data: any) => {
+      this.dynamoClient.batchWrite(params, (error, data) => {
         if (error) {
           reject(error);
         } else {
@@ -257,7 +272,11 @@ export class DynamoRecord {
    * @param {*} updateData
    * @param {*} config
    */
-  update(primaryKey: Object, updateData: any, config?: Object): Promise<any> {
+  update(
+    primaryKey: W,
+    updateData: $Shape<T>,
+    config?: Object
+  ): Promise<DynamoDB.DocumentClient.UpdateItemOutput> {
     return new Promise((resolve, reject) => {
       let params: any = {
         TableName: this.tableName,
@@ -287,7 +306,7 @@ export class DynamoRecord {
         params = assignConfig(params, config);
       }
 
-      this.dynamoClient.update(params, (error: any, data: any) => {
+      this.dynamoClient.update(params, (error, data) => {
         if (error) {
           reject(error);
         } else {
@@ -304,10 +323,10 @@ export class DynamoRecord {
    * @param {*} config
    */
   deepUpdate(
-    primaryKey: Object,
-    updateData: any,
+    primaryKey: W,
+    updateData: $Shape<T>,
     config?: Object
-  ): Promise<any> {
+  ): Promise<DynamoDB.DocumentClient.UpdateItemOutput> {
     return new Promise((resolve, reject) => {
       let params: any = {
         TableName: this.tableName,
@@ -364,7 +383,7 @@ export class DynamoRecord {
         params = assignConfig(params, config);
       }
 
-      this.dynamoClient.update(params, (error: any, data: any) => {
+      this.dynamoClient.update(params, (error, data) => {
         if (error) {
           reject(error);
         } else {
@@ -374,7 +393,10 @@ export class DynamoRecord {
     });
   }
 
-  destroy(primaryKey: Object, config?: Object): Promise<any> {
+  destroy(
+    primaryKey: W,
+    config?: Object
+  ): Promise<DynamoDB.DocumentClient.DeleteItemOutput> {
     return new Promise((resolve, reject) => {
       let params: any = {
         TableName: this.tableName,
@@ -385,7 +407,7 @@ export class DynamoRecord {
         params = assignConfig(params, config);
       }
 
-      this.dynamoClient.delete(params, (error: any, data: any) => {
+      this.dynamoClient.delete(params, (error, data) => {
         if (error) {
           reject(error);
         } else {
